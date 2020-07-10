@@ -1,4 +1,5 @@
 from room import Room
+from item import Item
 from player import Player
 # Declare all the rooms
 
@@ -32,7 +33,27 @@ room['narrow'].w_to = room['foyer']
 room['narrow'].n_to = room['treasure']
 room['treasure'].s_to = room['narrow']
 
-directions = ('n', 's', 'e', 'w')
+# List of available directions
+commands = ('n', 's', 'e', 'w', 'q', 'grab', 'drop')
+
+# List of items
+
+items = {
+    'coins': Item('coins', "A bag of 20 gold coins."),
+    'sword': Item('sword', "Rune scimmy."),
+    'key': Item('key', "A golden key."),
+    'armor': Item('armor', "Iron armor."),
+    'shield': Item('shield', "Silver shield."),
+    'treasure': Item('treasure', "You found the treasure!")
+}
+
+room['outside'].add_items(items['coins'])
+room['foyer'].add_items(items['sword'])
+room['overlook'].add_items(items['armor'])
+room['narrow'].add_items(items['shield'])
+room['treasure'].add_items(items['treasure'])
+
+
 
 #
 # Main
@@ -63,21 +84,32 @@ class Game:
             room = self.player.current_room
             print(f'\nCurrent Room: {room.name}')
             print(f'\n{room.description}')
+            print(f'\nAvailable Items:')
+            for i, x in enumerate(room.items):
+                print(f'Item {i+1}: {x.name}')
 
             #get player's next move
             new_input = self.get_input()
-            self.player.move(new_input)
+            inputs = [x.lower() for x in new_input]
+            
+            #dispatch next move
+            if new_input[0] == "q":
+                self.playing = False 
+            else:
+                self.player.perform_action(*inputs)
     
     def get_input(self):
         error_message = "\nError: Enter a direction (N, S, E, W)"
-        player_input = input("\nNext move: ").lower()
+        player_input = input("\nNext move: ").split()
+        
+        #check if action input
+        if len(player_input) > 1:
+            if player_input[0] in commands and player_input[1] in items:
+                return player_input
 
-        #check for exiting game
-        if player_input == "q":
-            self.playing = False
         # check if valid direction
-        elif player_input in directions:
-           return player_input
+        elif player_input[0] in commands:
+           return player_input[0]
         else:
             print(error_message)     
 
