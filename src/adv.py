@@ -1,6 +1,11 @@
 from room import Room
-
+from item import Item
+from player import Player
+from utils import slow_print
+import time
+import sys
 # Declare all the rooms
+
 
 room = {
     'outside':  Room("Outside Cave Entrance",
@@ -21,7 +26,6 @@ chamber! Sadly, it has already been completely emptied by
 earlier adventurers. The only exit is to the south."""),
 }
 
-
 # Link rooms together
 
 room['outside'].n_to = room['foyer']
@@ -33,19 +37,90 @@ room['narrow'].w_to = room['foyer']
 room['narrow'].n_to = room['treasure']
 room['treasure'].s_to = room['narrow']
 
-#
-# Main
-#
+# List of available directions
+commands = ('n', 's', 'e', 'w', 'q', 'grab', 'drop', "i")
 
-# Make a new player object that is currently in the 'outside' room.
+# List of items
+items = {
+    'coins': Item('coins', "A bag of 20 gold coins."),
+    'sword': Item('sword', "Rune scimmy."),
+    'key': Item('key', "A golden key."),
+    'armor': Item('armor', "Iron armor."),
+    'shield': Item('shield', "Silver shield."),
+    'treasure': Item('treasure', "You found the treasure!")
+}
 
-# Write a loop that:
-#
-# * Prints the current room name
-# * Prints the current description (the textwrap module might be useful here).
-# * Waits for user input and decides what to do.
-#
-# If the user enters a cardinal direction, attempt to move to the room there.
-# Print an error message if the movement isn't allowed.
-#
-# If the user enters "q", quit the game.
+room['outside'].add_items(items['coins'])
+room['foyer'].add_items(items['sword'])
+room['overlook'].add_items(items['armor'])
+room['narrow'].add_items(items['shield'])
+room['treasure'].add_items(items['treasure'])
+        
+
+class Game:
+    def __init__(self):
+        self.playing = False
+    
+    def start_game(self):
+        self.playing = True
+        self.get_new_player()
+        
+        while self.playing:
+            room = self.player.current_room
+            slow_print(f'Current Room: {room.name}', f'{room.description}', newline=True)
+            slow_print(f'Available Items: ', newline=True)
+            for i, x in enumerate(room.items):
+                if i == len(room.items) - 1:
+                    slow_print(x.name, newline=False)
+                else:
+                    slow_print(f'{x.name}, ', newline=False)
+
+            #get player's next move
+            new_input = self.get_input()
+            
+            #dispatch next move
+            if new_input[0] == "q":
+                self.playing = False 
+            else:
+                self.player.perform_action(*new_input)
+    
+    def get_input(self):
+        error_message = "Error: Enter a direction (N, S, E, W)"
+        player_input = input("\n\n: ").split()
+        inputs = [x.lower() for x in player_input]
+
+        if inputs[0] not in commands:
+            slow_print(error_message)
+        elif len(inputs) > 1:
+            if inputs[1] in items:
+                return inputs
+
+        #check if action input
+        if len(player_input) > 1:
+            if inputs[0] in commands and inputs[1] in items:
+                return inputs
+            else:
+                slow_print(error_message)
+        
+        return inputs
+      
+    def get_new_player(self):
+        name = input("Welcome to the adventure game. What is your name?\n")
+        self.player = Player(name, room["outside"])
+        self.display_directions()
+    
+    def display_directions(self):
+        slow_print(f"Welcome {self.player.name}. You can select your next move by entering 'N', 'S', 'E', or 'W'. Enter 'q' to quit game or 'h' for help.")
+    
+
+def main():
+    game = Game()
+    game.start_game()
+
+if __name__ == "__main__":
+    main()
+
+
+
+
+
