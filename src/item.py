@@ -1,3 +1,5 @@
+from utils import slow_print
+
 
 class Item:
     def __init__(self, name, description):
@@ -5,4 +7,4 @@ class Item:
         self.description = description
 
     def on_take(self):
-        print(f'You have picked up {self.description}')
+        slow_print(f'You have picked up {self.description}')
